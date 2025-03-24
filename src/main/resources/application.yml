@@ -1,1 +1,27 @@
-spring.application.name=charactalk-backend
+spring:
+  config:
+    import:
+      - api-config.yml
+      - app-config.yml
+      - persistence-config.yml
+      - security-config.yml
+      - optional:file:.env[.properties]
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+logging:
+  level:
+    charactalk: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: main
+
+logging:
+  level:
+    charactalk: DEBUG
