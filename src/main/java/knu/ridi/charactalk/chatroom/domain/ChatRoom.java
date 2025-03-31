@@ -1,9 +1,9 @@
-package knu.ridi.charactalk.chatroom;
+package knu.ridi.charactalk.chatroom.domain;
 
 import jakarta.persistence.*;
-import knu.ridi.charactalk.base.BaseTimeEntity;
-import knu.ridi.charactalk.character.Character;
-import knu.ridi.charactalk.member.entity.Member;
+import knu.ridi.charactalk.global.domain.BaseTimeEntity;
+import knu.ridi.charactalk.character.domain.Character;
+import knu.ridi.charactalk.member.domain.Member;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

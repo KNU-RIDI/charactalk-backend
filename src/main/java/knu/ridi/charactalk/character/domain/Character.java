@@ -1,4 +1,4 @@
-package knu.ridi.charactalk.character;
+package knu.ridi.charactalk.character.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
