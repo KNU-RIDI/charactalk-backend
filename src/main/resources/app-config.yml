@@ -1,0 +1,3 @@
+charactalk:
+  ai-server:
+    url: ${AI_SERVER_URL}
