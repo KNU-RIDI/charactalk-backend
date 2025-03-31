@@ -17,12 +17,12 @@ public class ChatMessageAssembler {
     private final Map<String, LocalDateTime> timestampMap = new ConcurrentHashMap<>();
 
     public Mono<ChatResponse> appendAndBuild(Long chatRoomId, ChatStreamResponse token) {
-        if (!token.isFinal()) return Mono.empty();
-
         String roomKey = generateRoomKey(chatRoomId, token.name());
         StringBuilder builder = buffer.computeIfAbsent(roomKey, k -> new StringBuilder());
         builder.append(token.token());
         timestampMap.putIfAbsent(roomKey, token.timestamp());
+
+        if (!token.isFinal()) return Mono.empty();
 
         ChatResponse complete = new ChatResponse(
             SenderType.CHARACTER,
