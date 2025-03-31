@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>SSE Test</title>
+</head>
+<body>
+<h2>📡 AI 응답 SSE 스트리밍 보기</h2>
+<div id="output"></div>
+
+<script>
+  const memberId = '1'; // 테스트용 사용자 ID
+  const eventSource = new EventSource(`http://localhost:8080/chat/stream?memberId=${memberId}`);
+  const output = document.getElementById("output");
+
+  eventSource.onmessage = (event) => {
+    const p = document.createElement("p");
+    p.textContent = `💬 ${event.data}`;
+    output.appendChild(p);
+  };
+
+  eventSource.onerror = (err) => {
+    console.error("SSE 연결 오류", err);
+    eventSource.close();
+  };
+</script>
+</body>
+</html>
