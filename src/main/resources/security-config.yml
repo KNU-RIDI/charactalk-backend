@@ -19,6 +19,7 @@ server:
 #              - profile
 #              - email
 
+
 ---
 spring:
   config:
