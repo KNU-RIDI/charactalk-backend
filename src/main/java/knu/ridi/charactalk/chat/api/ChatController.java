@@ -1,11 +1,11 @@
 package knu.ridi.charactalk.chat.api;
 
-import knu.ridi.charactalk.chat.dto.ChatRequest;
-import knu.ridi.charactalk.chat.dto.ChatStreamResponse;
+import knu.ridi.charactalk.chat.api.dto.ChatRequest;
+import knu.ridi.charactalk.chat.api.dto.ChatStreamResponse;
 import knu.ridi.charactalk.chat.service.ChatAsyncService;
 import knu.ridi.charactalk.chat.service.ChatSyncService;
 import knu.ridi.charactalk.chat.supporter.ChatStreamManager;
-import knu.ridi.charactalk.chatroom.ChatRoom;
+import knu.ridi.charactalk.chatroom.domain.ChatRoom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 @RequestMapping("/chat")
 @RequiredArgsConstructor
 public class ChatController {
+
     private final ChatAsyncService chatAsyncService;
     private final ChatSyncService chatSyncService;
     private final ChatStreamManager streamManager;
@@ -40,7 +41,6 @@ public class ChatController {
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<ChatStreamResponse>> stream(@RequestParam Long memberId) {
         return streamManager.subscribe(memberId)
-                .map(response -> ServerSentEvent.builder(response).build());
+            .map(response -> ServerSentEvent.builder(response).build());
     }
-
 }

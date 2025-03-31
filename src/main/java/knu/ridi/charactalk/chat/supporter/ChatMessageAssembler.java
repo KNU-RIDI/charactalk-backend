@@ -1,8 +1,8 @@
 package knu.ridi.charactalk.chat.supporter;
 
-import knu.ridi.charactalk.chat.SenderType;
-import knu.ridi.charactalk.chat.dto.ChatResponse;
-import knu.ridi.charactalk.chat.dto.ChatStreamResponse;
+import knu.ridi.charactalk.chat.domain.SenderType;
+import knu.ridi.charactalk.chat.api.dto.ChatResponse;
+import knu.ridi.charactalk.chat.api.dto.ChatStreamResponse;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -26,10 +26,10 @@ public class ChatMessageAssembler {
 
         if (token.isFinal()) {
             ChatResponse complete = new ChatResponse(
-                    SenderType.CHARACTER,
-                    token.name(),
-                    builder.toString(),
-                    timestampMap.getOrDefault(roomKey, LocalDateTime.now())  // fallback
+                SenderType.CHARACTER,
+                token.name(),
+                builder.toString(),
+                timestampMap.getOrDefault(roomKey, LocalDateTime.now())  // fallback
             );
             buffer.remove(roomKey);
             timestampMap.remove(roomKey);

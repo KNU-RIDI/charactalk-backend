@@ -1,10 +1,10 @@
-package knu.ridi.charactalk.chat;
+package knu.ridi.charactalk.chat.domain;
 
 import jakarta.persistence.*;
-import knu.ridi.charactalk.base.BaseTimeEntity;
-import knu.ridi.charactalk.chat.dto.ChatRequest;
-import knu.ridi.charactalk.chat.dto.ChatResponse;
-import knu.ridi.charactalk.chatroom.ChatRoom;
+import knu.ridi.charactalk.global.domain.BaseTimeEntity;
+import knu.ridi.charactalk.chat.api.dto.ChatRequest;
+import knu.ridi.charactalk.chat.api.dto.ChatResponse;
+import knu.ridi.charactalk.chatroom.domain.ChatRoom;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -41,19 +41,19 @@ public class Chat extends BaseTimeEntity {
 
     public static Chat fromUser(ChatRequest chatRequest, ChatRoom chatRoom) {
         return Chat.builder()
-                .chatRoom(chatRoom)
-                .message(chatRequest.message())
-                .senderId(chatRequest.senderId())
-                .senderType(SenderType.MEMBER)
-                .build();
+            .chatRoom(chatRoom)
+            .message(chatRequest.message())
+            .senderId(chatRequest.senderId())
+            .senderType(SenderType.MEMBER)
+            .build();
     }
 
     public static Chat fromAI(ChatResponse response, ChatRoom chatRoom) {
         return Chat.builder()
-                .chatRoom(chatRoom)
-                .message(response.message())
-                .senderId(0L) // 나중에 캐릭터 생성 생기면 해당 값으로 변경
-                .senderType(SenderType.CHARACTER)
-                .build();
+            .chatRoom(chatRoom)
+            .message(response.message())
+            .senderId(0L) // 나중에 캐릭터 생성 생기면 해당 값으로 변경
+            .senderType(SenderType.CHARACTER)
+            .build();
     }
 }

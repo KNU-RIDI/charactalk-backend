@@ -1,4 +1,4 @@
-package knu.ridi.charactalk.base;
+package knu.ridi.charactalk.global.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
