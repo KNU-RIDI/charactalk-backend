@@ -33,7 +33,8 @@ public class SecurityConfig {
     private final AuthorizationRequestRedirectResolver authorizationRequestRedirectResolver;
 
     public static final List<String> clients = List.of(
-      "http://localhost:5173"
+        "http://localhost:3000",
+        "https://charactalk.site"
     );
 
     @Bean
