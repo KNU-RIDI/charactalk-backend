@@ -5,6 +5,7 @@ import knu.ridi.charactalk.global.domain.BaseTimeEntity;
 import knu.ridi.charactalk.character.domain.Character;
 import knu.ridi.charactalk.member.domain.Member;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -32,4 +33,12 @@ public class ChatRoom extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "character_id")
     private Character character;
+
+    @Builder
+    public ChatRoom(String name, ChatRoomType type, Member member, Character character) {
+        this.name = name;
+        this.type = type;
+        this.member = member;
+        this.character = character;
+    }
 }
