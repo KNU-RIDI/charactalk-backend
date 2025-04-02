@@ -51,6 +51,8 @@ public class SecurityConfig {
                     "/login/**"
                 )
                 .permitAll()
+                .anyRequest()
+                .hasRole("USER")
             )
             .oauth2Login(oauth2 -> oauth2.redirectionEndpoint(redirection ->
                     redirection.baseUri("/login/oauth2/code/{registrationId}"))
