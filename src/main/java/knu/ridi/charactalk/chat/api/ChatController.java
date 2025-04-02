@@ -16,7 +16,7 @@ import reactor.core.publisher.Flux;
 @RestController
 @RequestMapping("/chat")
 @RequiredArgsConstructor
-public class ChatController {
+public class ChatController implements ChatControllerDocs {
 
     private final ChatAsyncService chatAsyncService;
     private final ChatStreamManager streamManager;
