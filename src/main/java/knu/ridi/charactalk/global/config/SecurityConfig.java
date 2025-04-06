@@ -45,6 +45,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/swagger-ui/**",
                     "/swagger-resources",
+                    "/v3/api-docs/**",
                     "/actuator/**",
                     "/oauth2/**",
                     "/auth/**",
@@ -52,7 +53,7 @@ public class SecurityConfig {
                 )
                 .permitAll()
                 .anyRequest()
-                .hasRole("USER")
+                .hasAnyRole("USER")
             )
             .oauth2Login(oauth2 -> oauth2.redirectionEndpoint(redirection ->
                     redirection.baseUri("/login/oauth2/code/{registrationId}"))
