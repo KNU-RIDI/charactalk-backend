@@ -7,14 +7,21 @@ spring:
       - security-config.yml
       - optional:file:.env[.properties]
 
+gcp:
+  speech:
+    recognizer: projects/977431648702/locations/global/recognizers/charactalk-speech-to-text
+
 ---
 spring:
   config:
     activate:
       on-profile: local
+
 logging:
   level:
-    charactalk: DEBUG
+    knu.ridi.charactalk: DEBUG
+    org.springframework.web.socket: DEBUG
+    com.google.cloud.speech.v2: DEBUG
 
 ---
 spring:
@@ -24,4 +31,5 @@ spring:
 
 logging:
   level:
-    charactalk: DEBUG
+    knu.ridi.charactalk: WARN
+    org.springframework.web.socket: WARN

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>음성 스트리밍 테스트</title>
+</head>
+<body>
+<h2>🎤 통화 기능</h2>
+<button id="startCallBtn">📞 통화 시작</button>
+<button id="recordBtn" disabled>🎙️ 녹음</button>
+<button id="endCallBtn" disabled>📴 통화 종료</button>
+<p id="status">상태: 대기 중</p>
+<p id="transcriptText">📝 전사 결과: 없음</p>
+
+<script>
+    const startCallBtn = document.getElementById('startCallBtn');
+    const recordBtn = document.getElementById('recordBtn');
+    const endCallBtn = document.getElementById('endCallBtn');
+    const statusText = document.getElementById('status');
+    const transcriptText = document.getElementById('transcriptText');
+
+    let socket;
+    let audioContext;
+    let processor;
+    let input;
+    let recording = false;
+    let recordStartTime = null;
+
+    const wsUrl = `ws://${location.hostname}:8080/ws/speech`;
+
+    async function initAudioProcessing() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext = new AudioContext({ sampleRate: 16000 });
+            input = audioContext.createMediaStreamSource(stream);
+            processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+            processor.onaudioprocess = (e) => {
+                if (!recording || !socket || socket.readyState !== WebSocket.OPEN) return;
+
+                const audioData = e.inputBuffer.getChannelData(0); // Float32Array
+                const buffer = new ArrayBuffer(audioData.length * 2); // 16bit = 2 bytes
+                const view = new DataView(buffer);
+
+                for (let i = 0; i < audioData.length; i++) {
+                    let sample = Math.max(-1, Math.min(1, audioData[i])); // clamp between [-1, 1]
+                    sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF; // convert to 16-bit PCM
+                    view.setInt16(i * 2, sample, true); // true = littleEndian
+                }
+
+                socket.send(buffer); // send LINEAR16 encoded buffer
+            };
+
+            input.connect(processor);
+            processor.connect(audioContext.destination);
+        } catch (err) {
+            statusText.textContent = '❌ 마이크 접근 실패';
+            console.error("🎤 마이크 접근 실패", err);
+        }
+    }
+
+    function startCall() {
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = async () => {
+            statusText.textContent = '상태: 통화 연결됨';
+            console.log("✅ WebSocket 연결됨");
+
+            await initAudioProcessing();
+
+            recordBtn.disabled = false;
+            endCallBtn.disabled = false;
+            startCallBtn.disabled = true;
+        };
+
+        socket.onmessage = (event) => {
+            console.log("📥 서버 응답:", event.data);
+            try {
+                const msg = event.data;
+                transcriptText.textContent = "📝 전사 결과: " + msg;
+            } catch (e) {
+                console.log("⚠️ JSON 파싱 실패: ", e);
+            }
+        };
+
+        socket.onerror = (e) => {
+            console.error("❌ WebSocket 오류", e);
+            statusText.textContent = '❌ WebSocket 오류 발생';
+        };
+
+        socket.onclose = () => {
+            console.log("🔌 WebSocket 종료됨");
+        };
+    }
+
+    function startRecording() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send("start");
+            recording = true;
+            recordStartTime = Date.now(); // 녹음 시작 시간 기록
+            statusText.textContent = '상태: 녹음 중...';
+            console.log("🎙️ 녹음 시작");
+        }
+    }
+
+    function stopRecording() {
+        if (!recording) return;
+        recording = false;
+        const duration = Date.now() - recordStartTime;
+        recordStartTime = null;
+        statusText.textContent = '상태: 통화 연결됨';
+        console.log("🛑 녹음 정지");
+
+        if (duration >= 1000) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send("stop"); // 서버에게 전사 요청
+                console.log("📤 stop 메시지 전송됨");
+            }
+        } else {
+            console.warn("⏱️ 녹음 시간 1초 미만으로 전사 요청 생략");
+        }
+    }
+
+    function endCall() {
+        stopRecording();
+
+        statusText.textContent = '상태: 대기 중';
+        transcriptText.textContent = "📝 전사 결과: 없음";
+
+        if (processor) {
+            processor.disconnect();
+            processor = null;
+        }
+        if (input) {
+            input.disconnect();
+            input = null;
+        }
+        if (audioContext) {
+            audioContext.close();
+            audioContext = null;
+        }
+
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.close();
+        }
+        socket = null;
+
+        recordBtn.disabled = true;
+        endCallBtn.disabled = true;
+        startCallBtn.disabled = false;
+
+        console.log("📴 통화 종료");
+    }
+
+    startCallBtn.addEventListener('click', startCall);
+    recordBtn.addEventListener('mousedown', startRecording);
+    recordBtn.addEventListener('mouseup', stopRecording);
+    recordBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        startRecording();
+    });
+    recordBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        stopRecording();
+    });
+    endCallBtn.addEventListener('click', endCall);
+</script>
+</body>
+</html>
