@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>음성 스트리밍 테스트</title>
+</head>
+<body>
+<h2>🎤 통화 기능</h2>
+<button id="startCallBtn">📞 통화 시작</button>
+<button id="recordBtn" disabled>🎙️ 녹음</button>
+<button id="endCallBtn" disabled>📴 통화 종료</button>
+<p id="status">상태: 대기 중</p>
+<p id="transcriptText">📝 전사 결과: 없음</p>
+
+<script>
+    const SAMPLE_RATE = 24000;
+    const wsUrl = `ws://${location.hostname}:8080/ws/speech`;
+
+    const $ = (id) => document.getElementById(id);
+    const startCallBtn = $('startCallBtn');
+    const recordBtn = $('recordBtn');
+    const endCallBtn = $('endCallBtn');
+    const statusText = $('status');
+    const transcriptText = $('transcriptText');
+
+    let socket, audioContext, processor, input;
+    let recording = false;
+    let recordStartTime = null;
+    let audioQueue = [];
+    let isPlaying = false;
+
+    // 🎧 오디오 처리
+    async function initAudioProcessing() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
+            input = audioContext.createMediaStreamSource(stream);
+
+            processor = audioContext.createScriptProcessor(4096, 1, 1);
+            processor.onaudioprocess = (e) => {
+                if (!recording || !socket || socket.readyState !== WebSocket.OPEN) return;
+
+                const floatData = e.inputBuffer.getChannelData(0);
+                const int16Buffer = float32ToLinear16(floatData);
+                socket.send(int16Buffer);
+            };
+
+            input.connect(processor);
+            processor.connect(audioContext.destination);
+        } catch (err) {
+            updateStatus('❌ 마이크 접근 실패');
+            console.error("🎤 마이크 접근 실패", err);
+        }
+    }
+
+    function float32ToLinear16(floatData) {
+        const buffer = new ArrayBuffer(floatData.length * 2);
+        const view = new DataView(buffer);
+        for (let i = 0; i < floatData.length; i++) {
+            let sample = Math.max(-1, Math.min(1, floatData[i]));
+            sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+            view.setInt16(i * 2, sample, true);
+        }
+        return buffer;
+    }
+
+    function decodeLinear16ToAudioBuffer(buffer, audioCtx) {
+        const view = new DataView(buffer);
+        const len = buffer.byteLength / 2;
+        const audioBuffer = audioCtx.createBuffer(1, len, SAMPLE_RATE);
+        const data = audioBuffer.getChannelData(0);
+        for (let i = 0; i < len; i++) {
+            data[i] = view.getInt16(i * 2, true) / 32768.0;
+        }
+        return audioBuffer;
+    }
+
+    function playBuffer(audioCtx, buffer) {
+        return new Promise(resolve => {
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+            source.onended = resolve;
+            source.start();
+        });
+    }
+
+    async function playQueue() {
+        if (audioQueue.length === 0) {
+            isPlaying = false;
+            return;
+        }
+        isPlaying = true;
+        const buffer = audioQueue.shift();
+        await playBuffer(audioContext, buffer);
+        await playQueue();
+    }
+
+    // 📡 WebSocket 연결
+    function startCall() {
+        socket = new WebSocket(wsUrl);
+        socket.binaryType = "arraybuffer";
+
+        socket.onopen = async () => {
+            updateStatus('상태: 통화 연결됨');
+            console.log("✅ WebSocket 연결됨");
+
+            await initAudioProcessing();
+
+            toggleButtons({ start: false, record: true, end: true });
+        };
+
+        socket.onmessage = async (event) => {
+            const audioBuffer = decodeLinear16ToAudioBuffer(event.data, audioContext);
+            audioQueue.push(audioBuffer);
+            if (!isPlaying) await playQueue();
+        };
+
+        socket.onerror = (e) => {
+            console.error("❌ WebSocket 오류", e);
+            updateStatus('❌ WebSocket 오류 발생');
+        };
+
+        socket.onclose = () => {
+            console.log("🔌 WebSocket 종료됨");
+        };
+    }
+
+    // 🎙️ 녹음 제어
+    function startRecording() {
+        if (socket?.readyState === WebSocket.OPEN) {
+            socket.send("start");
+            recording = true;
+            recordStartTime = Date.now();
+            updateStatus('상태: 녹음 중...');
+            console.log("🎙️ 녹음 시작");
+        }
+    }
+
+    function stopRecording() {
+        if (!recording) return;
+        recording = false;
+
+        const duration = Date.now() - recordStartTime;
+        recordStartTime = null;
+        updateStatus('상태: 통화 연결됨');
+        console.log("🛑 녹음 정지");
+
+        if (duration >= 500 && socket?.readyState === WebSocket.OPEN) {
+            socket.send("stop");
+            console.log("📤 stop 메시지 전송됨");
+        } else {
+            console.warn("⏱️ 녹음 시간 0.5초 미만 → 전사 생략");
+        }
+    }
+
+    // 📴 통화 종료
+    function endCall() {
+        stopRecording();
+        cleanupAudio();
+        cleanupSocket();
+
+        toggleButtons({ start: true, record: false, end: false });
+        updateStatus('상태: 대기 중');
+        transcriptText.textContent = "📝 전사 결과: 없음";
+
+        console.log("📴 통화 종료");
+    }
+
+    // 🔧 정리
+    function cleanupAudio() {
+        processor?.disconnect();
+        input?.disconnect();
+        audioContext?.close();
+
+        processor = null;
+        input = null;
+        audioContext = null;
+        audioQueue = [];
+        isPlaying = false;
+    }
+
+    function cleanupSocket() {
+        if (socket?.readyState === WebSocket.OPEN) {
+            socket.close();
+        }
+        socket = null;
+    }
+
+    // 🧼 유틸
+    function toggleButtons({ start, record, end }) {
+        startCallBtn.disabled = !start;
+        recordBtn.disabled = !record;
+        endCallBtn.disabled = !end;
+    }
+
+    function updateStatus(message) {
+        statusText.textContent = message;
+    }
+
+    // 📲 이벤트 바인딩
+    startCallBtn.addEventListener('click', startCall);
+    recordBtn.addEventListener('mousedown', startRecording);
+    recordBtn.addEventListener('mouseup', stopRecording);
+    recordBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault(); startRecording();
+    });
+    recordBtn.addEventListener('touchend', (e) => {
+        e.preventDefault(); stopRecording();
+    });
+    endCallBtn.addEventListener('click', endCall);
+</script>
+</body>
+</html>

@@ -8,12 +8,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SpeechToTextRecognizer {
+public class SpeechToTextConverter {
 
     @Value("${gcp.speech.recognizer}")
     private String recognizerName;
@@ -28,12 +28,9 @@ public class SpeechToTextRecognizer {
             .build())
         .build();
 
-    public void recognize(
-        final ByteArrayOutputStream buffer,
-        final Consumer<String> onTranscript
-    ) {
+    public String convert(final ByteArrayOutputStream buffer) {
         if (buffer == null) {
-            return ;
+            throw new IllegalStateException("⚠️ STT 세션이 초기화되지 않았습니다.");
         }
 
         byte[] audioData = buffer.toByteArray();
@@ -44,17 +41,11 @@ public class SpeechToTextRecognizer {
             .setContent(ByteString.copyFrom(audioData))
             .build();
 
-        log.debug("🎤 오디오 인식 시작");
-
         final RecognizeResponse response = speechClient.recognize(request);
 
-        for (final SpeechRecognitionResult result : response.getResultsList()) {
-            if (!result.getAlternativesList().isEmpty()) {
-                final String transcript = result.getAlternatives(0).getTranscript();
-                onTranscript.accept(transcript);
-            }
-        }
-
-        log.debug("🎤 오디오 인식 종료");
+        return response.getResultsList().stream()
+            .filter(result -> !result.getAlternativesList().isEmpty())
+            .map(result -> result.getAlternatives(0).getTranscript())
+            .collect(Collectors.joining());
     }
 }

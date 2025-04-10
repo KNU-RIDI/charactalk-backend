@@ -1,6 +1,7 @@
 package knu.ridi.charactalk.chat.service;
 
-import knu.ridi.charactalk.chat.supporter.SpeechToTextRecognizer;
+import knu.ridi.charactalk.chat.supporter.SpeechToTextConverter;
+import knu.ridi.charactalk.chat.supporter.TextToSpeechConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,14 +16,15 @@ import java.util.function.Consumer;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SpeechToTextService {
+public class SpeechService {
 
-    private final SpeechToTextRecognizer recognizer;
+    private final SpeechToTextConverter sttConverter;
+    private final TextToSpeechConverter ttsConverter;
+
     private final Map<String, ByteArrayOutputStream> audioBuffers = new ConcurrentHashMap<>();
 
     public void startStreaming(final String sessionId) {
         log.debug("🎤 [{}] STT 세션 시작", sessionId);
-
         audioBuffers.put(sessionId, new ByteArrayOutputStream());
     }
 
@@ -45,9 +47,16 @@ public class SpeechToTextService {
         }
     }
 
-    public void stopStreaming(final String sessionId, final Consumer<String> onTranscript) {
+    public void stopStreaming(final String sessionId, final Consumer<ByteBuffer> consumer) {
         final ByteArrayOutputStream buffer = audioBuffers.remove(sessionId);
-        recognizer.recognize(buffer, onTranscript);
-        log.debug("🎤 [{}] STT 세션 종료", sessionId);
+
+        log.debug("🎤 [{}] STT 변환 시작", sessionId);
+        final String message = sttConverter.convert(buffer);
+        log.debug("🎤 [{}] STT 변환 완료: {}", sessionId, message);
+
+        log.debug("🎤 [{}] TTS 변환 시작", sessionId);
+        ttsConverter.convert(sessionId, "cinderella", message)
+            .subscribe(consumer);
+        log.debug("🎤 [{}] TTS 변환 완료 및 STT 세션 종료", sessionId);
     }
 }

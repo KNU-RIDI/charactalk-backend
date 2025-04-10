@@ -1,6 +1,6 @@
 package knu.ridi.charactalk.chat.api;
 
-import knu.ridi.charactalk.chat.service.SpeechToTextService;
+import knu.ridi.charactalk.chat.service.SpeechService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,7 @@ import java.nio.ByteBuffer;
 @RequiredArgsConstructor
 public class SpeechWebSocketHandler extends BinaryWebSocketHandler {
 
-    private final SpeechToTextService sttService;
+    private final SpeechService speechService;
 
     @Override
     public void afterConnectionEstablished(final WebSocketSession session) {
@@ -29,11 +29,11 @@ public class SpeechWebSocketHandler extends BinaryWebSocketHandler {
     protected void handleTextMessage(final WebSocketSession session, final TextMessage message) {
         final String payload = message.getPayload();
         if (payload.equals("start")) {
-            sttService.startStreaming(session.getId());
+            speechService.startStreaming(session.getId());
         } else if (payload.equals("stop")) {
-            sttService.stopStreaming(session.getId(), transcript -> {
+            speechService.stopStreaming(session.getId(), audioStream -> {
                 try {
-                    session.sendMessage(new TextMessage(transcript));
+                    session.sendMessage(new BinaryMessage(audioStream));
                 } catch (final IOException exception) {
                     log.warn("❌ [{}] STT 결과 전송 실패", session.getId(), exception);
                 }
@@ -44,7 +44,7 @@ public class SpeechWebSocketHandler extends BinaryWebSocketHandler {
     @Override
     protected void handleBinaryMessage(final WebSocketSession session, final BinaryMessage message) {
         final ByteBuffer audioData = message.getPayload();
-        sttService.streamAudio(session.getId(), audioData);
+        speechService.streamAudio(session.getId(), audioData);
     }
 
     @Override
