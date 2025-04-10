@@ -1,4 +1,4 @@
-package knu.ridi.charactalk.auth.controller;
+package knu.ridi.charactalk.auth.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static knu.ridi.charactalk.auth.controller.AuthorizationRequestRedirectResolver.REDIRECT_PARAM_KEY;
+import static knu.ridi.charactalk.auth.api.AuthorizationRequestRedirectResolver.REDIRECT_PARAM_KEY;
 
 @Component
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {

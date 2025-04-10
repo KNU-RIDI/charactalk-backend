@@ -1,4 +1,4 @@
-package knu.ridi.charactalk.auth.controller;
+package knu.ridi.charactalk.auth.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

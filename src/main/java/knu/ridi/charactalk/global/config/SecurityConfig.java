@@ -1,8 +1,8 @@
 package knu.ridi.charactalk.global.config;
 
 import knu.ridi.charactalk.auth.service.GoogleOAuth2UserService;
-import knu.ridi.charactalk.auth.controller.AuthorizationRequestRedirectResolver;
-import knu.ridi.charactalk.auth.controller.OAuth2LoginSuccessHandler;
+import knu.ridi.charactalk.auth.api.AuthorizationRequestRedirectResolver;
+import knu.ridi.charactalk.auth.api.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
