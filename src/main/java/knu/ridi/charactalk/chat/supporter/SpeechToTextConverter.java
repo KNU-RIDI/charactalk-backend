@@ -23,7 +23,7 @@ public class SpeechToTextConverter {
     private final RecognitionConfig recognitionConfig = RecognitionConfig.newBuilder()
         .setExplicitDecodingConfig(ExplicitDecodingConfig.newBuilder()
             .setEncoding(ExplicitDecodingConfig.AudioEncoding.LINEAR16)
-            .setSampleRateHertz(16000)
+            .setSampleRateHertz(24000)
             .setAudioChannelCount(1)
             .build())
         .build();
