@@ -1,4 +1,4 @@
-package knu.ridi.charactalk.auth.controller;
+package knu.ridi.charactalk.auth.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
-import static knu.ridi.charactalk.auth.controller.AuthorizationRequestRedirectResolver.REDIRECT_PARAM_KEY;
+import static knu.ridi.charactalk.auth.api.AuthorizationRequestRedirectResolver.REDIRECT_PARAM_KEY;
 
 @Slf4j
 @RestController

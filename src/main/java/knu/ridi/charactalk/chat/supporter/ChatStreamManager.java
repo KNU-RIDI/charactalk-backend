@@ -26,6 +26,7 @@ public class ChatStreamManager {
     }
 
     public void disconnect(Long memberId) {
-        sinks.remove(memberId);
+        Optional.ofNullable(sinks.remove(memberId))
+            .ifPresent(Sinks.Many::tryEmitComplete);
     }
 }

@@ -1,4 +1,4 @@
-package knu.ridi.charactalk.auth.controller;
+package knu.ridi.charactalk.auth.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

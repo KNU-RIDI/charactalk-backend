@@ -32,6 +32,10 @@ public class ChatController implements ChatControllerDocs {
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<ChatStreamResponse>> stream(@RequestParam Long memberId) {
         return streamManager.subscribe(memberId)
-            .map(response -> ServerSentEvent.builder(response).build());
+            .map(response -> ServerSentEvent.builder(response).build())
+            .doFinally(signal -> {
+                log.debug("채팅 스트림 종료: {}, 신호: {}", memberId, signal);
+                streamManager.disconnect(memberId);
+            });
     }
 }
