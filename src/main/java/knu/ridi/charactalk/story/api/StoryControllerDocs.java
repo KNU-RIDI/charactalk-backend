@@ -16,15 +16,15 @@ import java.util.List;
 public interface StoryControllerDocs {
     @Operation(summary = "스토리 상세 조회", description = "스토리 ID를 통해 하나의 스토리(스토리 디테일 : 제목, 설명, 캐릭터들 등)를 조회합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "스토리 조회 성공"),
+        @ApiResponse(responseCode = "200", description = "스토리 조회 성공"),
     })
     ResponseEntity<StoryResponse> getStory(
-            @Parameter(description = "스토리 ID", example = "1") @PathVariable Long storyId
+        @Parameter(description = "스토리 ID", example = "1") @PathVariable Long storyId
     );
 
     @Operation(summary = "스토리 목록 조회", description = "스토리 카드 형태(스토리 이미지, 이름)로 전체 스토리 목록을 조회합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "스토리 목록 조회 성공")
+        @ApiResponse(responseCode = "200", description = "스토리 목록 조회 성공")
     })
     ResponseEntity<List<StoryCardResponse>> getStories();
 }

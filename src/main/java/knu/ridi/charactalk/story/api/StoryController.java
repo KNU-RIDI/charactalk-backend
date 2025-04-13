@@ -22,7 +22,8 @@ public class StoryController implements StoryControllerDocs {
 
     @GetMapping("/{storyId}")
     public ResponseEntity<StoryResponse> getStory(
-            @PathVariable Long storyId) {
+        @PathVariable Long storyId
+    ) {
         return ResponseEntity.ok(storyService.getStory(storyId));
     }
 
@@ -30,5 +31,4 @@ public class StoryController implements StoryControllerDocs {
     public ResponseEntity<List<StoryCardResponse>> getStories() {
         return ResponseEntity.status(HttpStatus.OK).body(storyService.getStories());
     }
-
 }

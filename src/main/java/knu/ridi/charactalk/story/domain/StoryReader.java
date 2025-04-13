@@ -9,6 +9,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class StoryReader {
+
     private static final String STORY_NOT_FOUND = "스토리를 찾을 수 없습니다.";
     private final StoryRepository storyRepository;
 

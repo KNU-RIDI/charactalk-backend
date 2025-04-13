@@ -27,5 +27,4 @@ public class StoryService {
                 .map(StoryCardResponse::from)
                 .toList();
     }
-
 }
