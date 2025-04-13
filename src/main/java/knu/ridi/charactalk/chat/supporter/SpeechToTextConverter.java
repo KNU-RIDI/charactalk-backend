@@ -5,12 +5,14 @@ import com.google.protobuf.ByteString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.util.stream.Collectors;
 
 @Slf4j
+@ConditionalOnProperty(name = "gcp.speech.enabled", havingValue = "true")
 @Component
 @RequiredArgsConstructor
 public class SpeechToTextConverter {

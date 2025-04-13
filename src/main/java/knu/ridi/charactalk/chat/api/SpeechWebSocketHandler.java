@@ -3,6 +3,7 @@ package knu.ridi.charactalk.chat.api;
 import knu.ridi.charactalk.chat.service.SpeechService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 @Slf4j
+@ConditionalOnProperty(name = "gcp.speech.enabled", havingValue = "true")
 @Component
 @RequiredArgsConstructor
 public class SpeechWebSocketHandler extends BinaryWebSocketHandler {

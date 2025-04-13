@@ -9,6 +9,7 @@ spring:
 
 gcp:
   speech:
+    enabled: false
     recognizer: projects/977431648702/locations/global/recognizers/charactalk-speech-to-text
 
 ---
