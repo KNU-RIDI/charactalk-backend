@@ -31,5 +31,6 @@ spring:
 
 logging:
   level:
-    knu.ridi.charactalk: WARN
-    org.springframework.web.socket: WARN
+    knu.ridi.charactalk: DEBUG
+    org.springframework.web.socket: DEBUG
+    com.google.cloud.speech.v2: DEBUG

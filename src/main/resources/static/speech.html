@@ -14,7 +14,8 @@
 
 <script>
     const SAMPLE_RATE = 24000;
-    const wsUrl = `ws://${location.hostname}:8080/ws/speech`;
+    const wsUrl = `wss://api.charactalk.site/ws/speech`;
+    // const wsUrl = `ws://localhost:8080/ws/speech`;
 
     const $ = (id) => document.getElementById(id);
     const startCallBtn = $('startCallBtn');
