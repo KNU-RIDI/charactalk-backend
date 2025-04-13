@@ -4,6 +4,7 @@ import knu.ridi.charactalk.chat.supporter.SpeechToTextConverter;
 import knu.ridi.charactalk.chat.supporter.TextToSpeechConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -14,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 @Slf4j
+@ConditionalOnProperty(name = "gcp.speech.enabled", havingValue = "true")
 @Service
 @RequiredArgsConstructor
 public class SpeechService {

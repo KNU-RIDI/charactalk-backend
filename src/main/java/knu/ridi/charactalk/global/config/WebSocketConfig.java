@@ -2,12 +2,14 @@ package knu.ridi.charactalk.global.config;
 
 import knu.ridi.charactalk.chat.api.SpeechWebSocketHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
 @Configuration
+@ConditionalOnProperty(name = "gcp.speech.enabled", havingValue = "true")
 @EnableWebSocket
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketConfigurer {
