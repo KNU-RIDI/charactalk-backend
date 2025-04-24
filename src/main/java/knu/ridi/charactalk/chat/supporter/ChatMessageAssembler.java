@@ -1,8 +1,9 @@
 package knu.ridi.charactalk.chat.supporter;
 
+import knu.ridi.charactalk.character.domain.Character;
 import knu.ridi.charactalk.chat.api.dto.ChatResponse;
-import knu.ridi.charactalk.chat.api.dto.ChatStreamResponse;
 import knu.ridi.charactalk.chat.domain.SenderType;
+import knu.ridi.charactalk.chatroom.domain.ChatRoom;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -16,8 +17,12 @@ public class ChatMessageAssembler {
     private final Map<String, StringBuilder> buffer = new ConcurrentHashMap<>();
     private final Map<String, LocalDateTime> timestampMap = new ConcurrentHashMap<>();
 
-    public Mono<ChatResponse> appendAndBuild(Long chatRoomId, ChatStreamResponse token) {
-        String roomKey = generateRoomKey(chatRoomId, token.name());
+    public Mono<ChatResponse> appendAndBuild(
+        ChatRoom chatRoom,
+        Character character,
+        ChatStreamToken token
+    ) {
+        String roomKey = generateRoomKey(chatRoom.getId(), character.getName());
         StringBuilder builder = buffer.computeIfAbsent(roomKey, k -> new StringBuilder());
         builder.append(token.token());
         timestampMap.putIfAbsent(roomKey, token.timestamp());
@@ -26,9 +31,9 @@ public class ChatMessageAssembler {
 
         ChatResponse complete = new ChatResponse(
             SenderType.CHARACTER,
-            token.name(),
+            character.getId(),
             builder.toString(),
-            timestampMap.getOrDefault(roomKey, LocalDateTime.now())  // fallback
+            timestampMap.getOrDefault(roomKey, LocalDateTime.now())
         );
 
         buffer.remove(roomKey);

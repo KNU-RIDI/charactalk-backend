@@ -21,7 +21,7 @@ public class TextToSpeechConverter {
     ) {
         return webClient.get()
             .uri(builder -> builder.path("/speech/{roomId}")
-                .queryParam("charId", charId)
+                .queryParam("character", charId)
                 .queryParam("message", message)
                 .build(roomId))
             .accept(MediaType.parseMediaType("audio/L16"))

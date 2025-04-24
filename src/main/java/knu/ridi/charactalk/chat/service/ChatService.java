@@ -1,12 +1,14 @@
 package knu.ridi.charactalk.chat.service;
 
-import knu.ridi.charactalk.chat.api.dto.ChatRequest;
+import knu.ridi.charactalk.character.domain.Character;
 import knu.ridi.charactalk.chat.api.dto.ChatResponse;
-import knu.ridi.charactalk.chat.api.dto.ChatStreamResponse;
 import knu.ridi.charactalk.chat.domain.Chat;
 import knu.ridi.charactalk.chat.domain.ChatWriter;
+import knu.ridi.charactalk.chat.domain.SenderType;
+import knu.ridi.charactalk.chat.service.dto.SendChatCommand;
 import knu.ridi.charactalk.chat.supporter.ChatMessageAssembler;
 import knu.ridi.charactalk.chat.supporter.ChatStreamManager;
+import knu.ridi.charactalk.chat.supporter.ChatStreamToken;
 import knu.ridi.charactalk.chatroom.domain.ChatRoom;
 import knu.ridi.charactalk.chatroom.domain.ChatRoomReader;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +24,10 @@ import reactor.core.scheduler.Schedulers;
 
 import java.net.URI;
 
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
-public class ChatAsyncService {
+public class ChatService {
 
     private final WebClient webClient;
 
@@ -35,38 +37,48 @@ public class ChatAsyncService {
     private final ChatWriter chatWriter;
     private final ChatRoomReader chatRoomReader;
 
-    public Mono<Void> sendToAI(ChatRequest request) {
-        ChatRoom chatRoom = chatRoomReader.readBy(request.chatRoomId());
+    public Mono<Void> send(SendChatCommand command) {
+        ChatRoom chatRoom = chatRoomReader.readBy(command.chatRoomId());
+        Character character = chatRoom.getCharacter();
+
         return webClient.get()
-            .uri(builder -> buildUri(builder, request))
+            .uri(builder -> buildUri(builder, command, character))
             .accept(MediaType.TEXT_EVENT_STREAM)
             .retrieve()
-            .bodyToFlux(getFluxType())
+            .bodyToFlux(SSEChatTokenType())
             .mapNotNull(ServerSentEvent::data)
-            .doOnNext(data -> handleAIResponse(request.senderId(), data))
-            .flatMap(token -> assembler.appendAndBuild(request.chatRoomId(), token))
-            .flatMap(response -> saveChat(response, chatRoom))
+            .doOnNext(token -> streamManager.push(chatRoom, token))
+            .flatMap(token -> assembler.appendAndBuild(chatRoom, character, token))
+            .flatMap(response -> saveChat(chatRoom, character, response))
             .then();
     }
 
-    private static URI buildUri(UriBuilder builder, ChatRequest request) {
+    private static URI buildUri(
+        UriBuilder builder,
+        SendChatCommand command,
+        Character character
+    ) {
         return builder.path("/generate/{roomId}")
-            .queryParam("charId", request.charId())
-            .queryParam("message", request.message())
-            .build(request.chatRoomId().toString());
+            .queryParam("characterId", character.getId())
+            .queryParam("message", command.message())
+            .build(command.chatRoomId());
     }
 
-    private static ParameterizedTypeReference<ServerSentEvent<ChatStreamResponse>> getFluxType() {
+    private static ParameterizedTypeReference<ServerSentEvent<ChatStreamToken>> SSEChatTokenType() {
         return new ParameterizedTypeReference<>() {};
     }
 
-    private void handleAIResponse(Long senderId, ChatStreamResponse data) {
-        log.debug("받은 응답: {}", data);
-        streamManager.push(senderId, data);
-    }
-
-    private Mono<Void> saveChat(ChatResponse chatResponse, ChatRoom chatRoom) {
-        Chat chat = Chat.fromAI(chatResponse, chatRoom);
+    private Mono<Void> saveChat(
+        ChatRoom chatRoom,
+        Character character,
+        ChatResponse response
+    ) {
+        Chat chat = Chat.builder()
+            .chatRoom(chatRoom)
+            .message(response.message())
+            .senderId(character.getId())
+            .senderType(SenderType.CHARACTER)
+            .build();
         return Mono.fromCallable(() -> chatWriter.write(chat))
             .subscribeOn(Schedulers.boundedElastic())
             .then();

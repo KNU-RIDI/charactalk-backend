@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@Tag(name = "스토리 API", description = "스토리 관련 API")
-public interface StoryControllerDocs {
+@Tag(name = "스토리")
+public interface StoryDocs {
     @Operation(summary = "스토리 상세 조회", description = "스토리 ID를 통해 하나의 스토리(스토리 디테일 : 제목, 설명, 캐릭터들 등)를 조회합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "스토리 조회 성공"),

@@ -1,7 +1,7 @@
 package knu.ridi.charactalk.story.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import knu.ridi.charactalk.character.dto.CharacterResponse;
+import knu.ridi.charactalk.character.api.dto.CharacterResponse;
 import knu.ridi.charactalk.story.domain.Story;
 import knu.ridi.charactalk.story.domain.StoryType;
 
