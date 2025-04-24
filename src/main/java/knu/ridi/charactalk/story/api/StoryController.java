@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/stories")
 @RequiredArgsConstructor
-public class StoryController implements StoryControllerDocs {
+public class StoryController implements StoryDocs {
 
     private final StoryService storyService;
 
