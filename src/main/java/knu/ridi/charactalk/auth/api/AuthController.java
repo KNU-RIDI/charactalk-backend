@@ -12,7 +12,7 @@ import static knu.ridi.charactalk.auth.api.AuthorizationRequestRedirectResolver.
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
-public class AuthController {
+public class AuthController implements AuthDocs {
 
     @GetMapping("/login/{registrationId}")
     public RedirectView login(
