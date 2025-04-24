@@ -9,8 +9,8 @@
 <div id="output"></div>
 
 <script>
-  const memberId = '1'; // 테스트용 사용자 ID
-  const eventSource = new EventSource(`http://localhost:8080/chat/stream?memberId=${memberId}`);
+  const chatRoomId = '1'; // 테스트용 사용자 ID
+  const eventSource = new EventSource(`http://localhost:8080/chat-room/${chatRoomId}/stream`);
   const output = document.getElementById("output");
 
   eventSource.onmessage = (event) => {
