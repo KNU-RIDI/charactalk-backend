@@ -50,12 +50,12 @@ public class SecurityConfig {
                     "/actuator/**",
                     "/oauth2/**",
                     "/auth/**",
-                    "/login/**"
+                    "/login/**",
+                    "/ws/**"
                 )
                 .permitAll()
                 .anyRequest()
-                .permitAll()
-//                .hasAnyRole("USER")
+                .hasAnyRole("USER")
             )
             .oauth2Login(oauth2 -> oauth2.redirectionEndpoint(redirection ->
                     redirection.baseUri("/login/oauth2/code/{registrationId}"))

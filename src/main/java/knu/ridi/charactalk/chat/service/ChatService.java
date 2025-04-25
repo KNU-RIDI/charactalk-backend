@@ -39,8 +39,23 @@ public class ChatService {
 
     public Mono<Void> send(SendChatCommand command) {
         ChatRoom chatRoom = chatRoomReader.readBy(command.chatRoomId());
-        Character character = chatRoom.getCharacter();
+        Chat chat = Chat.builder()
+            .chatRoom(chatRoom)
+            .message(command.message())
+            .senderId(command.member().getId())
+            .senderType(SenderType.MEMBER)
+            .build();
+        chatWriter.write(chat);
+        return generateChat(command, chatRoom)
+            .doOnError(error -> log.error("❌ [{}] 채팅 생성 실패", command.chatRoomId(), error))
+            .doOnSuccess(unused -> log.debug("✅ [{}] 채팅 생성 완료", command.chatRoomId()));
+    }
 
+    private Mono<Void> generateChat(
+        SendChatCommand command,
+        ChatRoom chatRoom
+    ) {
+        Character character = chatRoom.getCharacter();
         return webClient.get()
             .uri(builder -> buildUri(builder, command, character))
             .accept(MediaType.TEXT_EVENT_STREAM)
@@ -48,8 +63,8 @@ public class ChatService {
             .bodyToFlux(SSEChatTokenType())
             .mapNotNull(ServerSentEvent::data)
             .doOnNext(token -> streamManager.push(chatRoom, token))
-            .flatMap(token -> assembler.appendAndBuild(chatRoom, character, token))
-            .flatMap(response -> saveChat(chatRoom, character, response))
+            .flatMap(token -> assembler.appendAndBuild(chatRoom, token))
+            .flatMap(response -> saveChat(chatRoom, response))
             .then();
     }
 
@@ -70,9 +85,9 @@ public class ChatService {
 
     private Mono<Void> saveChat(
         ChatRoom chatRoom,
-        Character character,
         ChatResponse response
     ) {
+        Character character = chatRoom.getCharacter();
         Chat chat = Chat.builder()
             .chatRoom(chatRoom)
             .message(response.message())

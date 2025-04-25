@@ -16,12 +16,12 @@ public class TextToSpeechConverter {
 
     public Flux<ByteBuffer> convert(
         final String roomId,
-        final String charId,
+        final Long characterId,
         final String message
     ) {
         return webClient.get()
             .uri(builder -> builder.path("/speech/{roomId}")
-                .queryParam("character", charId)
+                .queryParam("characterId", characterId)
                 .queryParam("message", message)
                 .build(roomId))
             .accept(MediaType.parseMediaType("audio/L16"))

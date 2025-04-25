@@ -31,7 +31,8 @@ public class SpeechWebSocketHandler extends BinaryWebSocketHandler {
         if (payload.equals("start")) {
             speechService.startStreaming(session.getId());
         } else if (payload.equals("stop")) {
-            speechService.stopStreaming(session.getId(), audioStream -> {
+            final Long chatRoomId = Long.parseLong((String) session.getAttributes().get("chatRoomId"));
+            speechService.stopStreaming(session.getId(), chatRoomId, audioStream -> {
                 try {
                     session.sendMessage(new BinaryMessage(audioStream));
                 } catch (final IOException exception) {

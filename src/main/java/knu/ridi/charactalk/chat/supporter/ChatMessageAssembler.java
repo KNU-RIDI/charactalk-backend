@@ -19,9 +19,9 @@ public class ChatMessageAssembler {
 
     public Mono<ChatResponse> appendAndBuild(
         ChatRoom chatRoom,
-        Character character,
         ChatStreamToken token
     ) {
+        Character character = chatRoom.getCharacter();
         String roomKey = generateRoomKey(chatRoom.getId(), character.getName());
         StringBuilder builder = buffer.computeIfAbsent(roomKey, k -> new StringBuilder());
         builder.append(token.token());

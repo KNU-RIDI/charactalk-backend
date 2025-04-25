@@ -47,7 +47,11 @@ public class SpeechService {
         }
     }
 
-    public void stopStreaming(final String sessionId, final Consumer<ByteBuffer> consumer) {
+    public void stopStreaming(
+        final String sessionId,
+        final Long characterId,
+        final Consumer<ByteBuffer> consumer
+    ) {
         final ByteArrayOutputStream buffer = audioBuffers.remove(sessionId);
 
         log.debug("🎤 [{}] STT 변환 시작", sessionId);
@@ -55,8 +59,9 @@ public class SpeechService {
         log.debug("🎤 [{}] STT 변환 완료: {}", sessionId, message);
 
         log.debug("🎤 [{}] TTS 변환 시작", sessionId);
-        ttsConverter.convert(sessionId, "cinderella", message)
-            .subscribe(consumer);
+        ttsConverter.convert(sessionId, characterId, message)
+            .doOnNext(consumer)
+            .subscribe();
         log.debug("🎤 [{}] TTS 변환 완료 및 STT 세션 종료", sessionId);
     }
 }
