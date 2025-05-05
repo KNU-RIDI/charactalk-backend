@@ -34,6 +34,7 @@ public class SecurityConfig {
 
     public static final List<String> clients = List.of(
         "http://localhost:3000",
+        "http://localhost:8080",
         "https://charactalk.site",
         "https://api.charactalk.site"
     );
