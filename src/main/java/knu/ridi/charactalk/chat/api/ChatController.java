@@ -1,11 +1,16 @@
 package knu.ridi.charactalk.chat.api;
 
 import knu.ridi.charactalk.auth.service.CharactalkUser;
+import knu.ridi.charactalk.chat.api.dto.ChatHistoryResponse;
+import knu.ridi.charactalk.chat.api.dto.ChatRoomResponse;
+import knu.ridi.charactalk.chat.api.dto.ChatToken;
 import knu.ridi.charactalk.chat.api.dto.SendChatRequest;
 import knu.ridi.charactalk.chat.service.ChatService;
-import knu.ridi.charactalk.chat.api.dto.ChatToken;
+import knu.ridi.charactalk.chat.service.dto.GetChatHistoryCommand;
+import knu.ridi.charactalk.chat.service.dto.GetChatRoomCommand;
 import knu.ridi.charactalk.chat.service.dto.SendChatCommand;
 import knu.ridi.charactalk.chat.supporter.ChatStreamManager;
+import knu.ridi.charactalk.global.common.cursor.dto.CursorResponse;
 import knu.ridi.charactalk.member.domain.Member;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,5 +64,37 @@ public class ChatController implements ChatDocs {
                 log.debug("채팅 스트림 종료: {}, 신호: {}", chatRoomId, signal);
                 streamManager.disconnect(chatRoomId);
             });
+    }
+
+    @GetMapping("/{chatRoomId}")
+    public ResponseEntity<ChatRoomResponse> getChatRoom(
+        @AuthenticationPrincipal CharactalkUser user,
+        @PathVariable Long chatRoomId
+    ) {
+        Member member = user.getMember();
+
+        GetChatRoomCommand command = new GetChatRoomCommand(chatRoomId, member.getId());
+        ChatRoomResponse response = chatService.getChatRoom(command);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{chatRoomId}/chats")
+    public ResponseEntity<CursorResponse<ChatHistoryResponse>> getChatHistory(
+        @AuthenticationPrincipal CharactalkUser user,
+        @PathVariable Long chatRoomId,
+        @RequestParam(required = false) Long cursor,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        Member member = user.getMember();
+        GetChatHistoryCommand command = new GetChatHistoryCommand(
+            chatRoomId,
+            member.getId(),
+            cursor,
+            size
+        );
+
+        CursorResponse<ChatHistoryResponse> response= chatService.getChatHistory(command);
+
+        return ResponseEntity.ok(response);
     }
 }
