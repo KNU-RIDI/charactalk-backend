@@ -1,19 +1,28 @@
 package knu.ridi.charactalk.chat.service;
 
 import knu.ridi.charactalk.character.domain.Character;
+import knu.ridi.charactalk.chat.api.dto.ChatHistoryResponse;
 import knu.ridi.charactalk.chat.api.dto.ChatResponse;
+import knu.ridi.charactalk.chat.api.dto.ChatRoomResponse;
 import knu.ridi.charactalk.chat.domain.Chat;
 import knu.ridi.charactalk.chat.domain.ChatWriter;
 import knu.ridi.charactalk.chat.domain.SenderType;
+import knu.ridi.charactalk.chat.repository.ChatRepository;
+import knu.ridi.charactalk.chat.service.dto.GetChatHistoryCommand;
+import knu.ridi.charactalk.chat.service.dto.GetChatRoomCommand;
 import knu.ridi.charactalk.chat.service.dto.SendChatCommand;
 import knu.ridi.charactalk.chat.supporter.ChatMessageAssembler;
 import knu.ridi.charactalk.chat.supporter.ChatStreamManager;
 import knu.ridi.charactalk.chat.supporter.ChatStreamToken;
 import knu.ridi.charactalk.chatroom.domain.ChatRoom;
 import knu.ridi.charactalk.chatroom.domain.ChatRoomReader;
+import knu.ridi.charactalk.global.common.cursor.dto.CursorRequest;
+import knu.ridi.charactalk.global.common.cursor.dto.CursorResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
@@ -23,6 +32,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.net.URI;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -36,6 +46,8 @@ public class ChatService {
 
     private final ChatWriter chatWriter;
     private final ChatRoomReader chatRoomReader;
+
+    private final ChatRepository chatRepository;
 
     public Mono<Void> send(SendChatCommand command) {
         ChatRoom chatRoom = chatRoomReader.readBy(command.chatRoomId());
@@ -97,5 +109,31 @@ public class ChatService {
         return Mono.fromCallable(() -> chatWriter.write(chat))
             .subscribeOn(Schedulers.boundedElastic())
             .then();
+    }
+
+    public CursorResponse<ChatHistoryResponse> getChatHistory(GetChatHistoryCommand command) {
+        CursorRequest cursorRequest = command.toCursorRequest();
+
+        int limit = cursorRequest.size() + 1;
+
+        Pageable pageable = PageRequest.of(0, limit);
+
+        List<Chat> chats = chatRepository.findByChatRoomIdWithCursor(
+                command.chatRoomId(),
+                cursorRequest.cursor(),
+                pageable
+        );
+
+        List<ChatHistoryResponse> responses = chats.stream()
+                .map(ChatHistoryResponse::from)
+                .toList();
+
+        return CursorResponse.of(responses, cursorRequest.size());
+    }
+
+    public ChatRoomResponse getChatRoom(GetChatRoomCommand command) {
+        ChatRoom chatRoom = chatRoomReader.readBy(command.chatRoomId());
+
+        return ChatRoomResponse.from(chatRoom);
     }
 }
