@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: charactalk-application
     env_file:
-      - ${ENV_FILE}
+      - .env
     ports:
       - ${PORT}:${PORT}
     restart: always
