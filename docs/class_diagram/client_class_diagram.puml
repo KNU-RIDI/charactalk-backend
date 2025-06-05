@@ -1,0 +1,68 @@
+@startuml
+
+class LAppDelegate {
+  + static getInstance(): LAppDelegate
+  + static releaseInstance(): void
+  + initialize(): boolean
+  + run(): void
+  - release(): void
+}
+
+class LAppSubdelegate {
+  + initialize(): void
+  + update(): void
+  + release(): void
+}
+
+class LAppLive2DManager {
+  - _subdelegate: LAppSubdelegate
+  - _model: LAppModel
+  + initialize(): void
+  + release(): void
+  + addModel(): void
+  + onUpdate(): void
+  + beganMotion(): void
+  + finishedMotion(): void
+}
+
+class LAppModel {
+  + setExpression(): void
+  + startMotion(): void
+  + update(): void
+  + draw(): void
+  + setSubdelegate(): void
+}
+
+class VoiceCallManager {
+  - FFT_SIZE: number
+  - SAMPLE_RATE: number
+  - socket: WebSocket
+  - audioContext: AudioContext
+  - analyserNode: AnalyserNode
+  - analyserBuffer: Uint8Array
+  - processor: ScriptProcessorNode
+  - input: MediaStreamAudioSourceNode
+  - recording: boolean
+  - audioQueue: AudioBuffer[]
+  - isPlaying: boolean
+  - model: LAppModel
+
+  - bindEvents(): void
+  - float32ToLinear16(): ArrayBuffer
+  - decodeLinear16ToAudioBuffer(): AudioBuffer
+  - playBuffer(): Promise<void>
+  - playQueue(): Promise<void>
+  + startCall(): void
+  + startRecording(): void
+  + stopRecording(): void
+  + endCall(): void
+  - cleanup(): void
+  + getNormalizedAverageFrequency(): number
+}
+
+LAppDelegate --> LAppSubdelegate : delegate
+LAppSubdelegate <--> LAppLive2DManager
+LAppLive2DManager <--> LAppModel
+LAppModel <--> VoiceCallManager
+
+@enduml

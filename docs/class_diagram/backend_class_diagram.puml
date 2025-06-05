@@ -1,0 +1,41 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class SpeechToTextConverter {
+  +convert(): String
+}
+
+class TextToSpeechConverter {
+  +convert(): Flux<ByteBuffer>
+}
+
+class SpeechService {
+  +startStreaming(): void
+  +streamAudio(): void
+  +stopStreaming(): Flux<?>
+}
+
+class ChatMessageAssembler {
+  +appendAndBuild(): Mono<ChatResponse>
+  -generateRoomKey(): String
+}
+
+class ChatStreamManager {
+  +subscribe(): Flux<ChatToken>
+  +disconnect(): void
+  +push(): void
+}
+
+class ChatService {
+  +send(): Mono<Void>
+  -generateChat(): Mono<Void>
+  -saveChat(ChatRoom, ChatResponse): Mono<Void>
+}
+
+SpeechService --> SpeechToTextConverter
+SpeechService --> TextToSpeechConverter
+
+ChatService --> ChatMessageAssembler
+ChatService --> ChatStreamManager
+
+@enduml

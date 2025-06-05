@@ -1,0 +1,37 @@
+@startuml
+actor User
+actor Client
+participant AppServer
+participant AIServer
+participant Database
+participant StreamManager
+
+== 1. 채팅방 접속 ==
+User -> Client : 채팅방 접속 버튼 클릭
+Client -> AppServer : 채팅방 접속 요청
+AppServer -> StreamManager : 스트림 구독
+
+== 2. 사용자 메시지 전송 ==
+User -> Client : 채팅 메시지 입력
+Client -> AppServer : 채팅 메시지 전송
+AppServer -> Database : 채팅 메시지 저장
+
+== 3. 캐릭터 응답 생성 ==
+AppServer -> AIServer : 채팅 메시지에 대한 캐릭터 응답 생성 요청
+loop 캐릭터 응답 청크 단위
+    AIServer --> AppServer : 캐릭터 응답 청크 전송 (SSE)
+end
+
+== 4. 캐릭터 응답 처리 ==
+loop 캐릭터 응답 청크 단위
+    AppServer -> StreamManager : 캐릭터 응답 청크 발행
+end
+
+AppServer -> AppServer : 청크 조립 → 캐릭터 응답 메시지 완성
+AppServer -> Database : 캐릭터 응답 메시지 저장
+
+== 5. 사용자 출력 ==
+StreamManager -> Client : 캐릭터 응답 청크 소비
+Client -> User : 캐릭터 응답 청크 출력
+
+@enduml

@@ -1,0 +1,32 @@
+@startuml
+
+left to right direction
+
+actor "사용자" as user
+
+rectangle 캐릭톡 {
+  usecase "캐릭터 조회" as get_character
+  usecase "캐릭터 목록 조회" as get_character_list
+  usecase "캐릭터 선택" as select_character
+  usecase "채팅방 생성" as create_chat_room
+  usecase "채팅방 목록 조회" as get_chat_room_list
+  usecase "채팅방 접속" as enter_chat_room
+  usecase "음성 채팅" as speech_chat
+  usecase "문자 채팅" as text_chat
+}
+
+user --> get_character_list
+user --> get_character
+
+user --> get_chat_room_list
+
+user --> create_chat_room
+create_chat_room --> select_character : <<include>>
+
+user --> speech_chat
+speech_chat --> enter_chat_room : <<include>>
+
+user --> text_chat
+text_chat --> enter_chat_room : <<include>>
+
+@enduml

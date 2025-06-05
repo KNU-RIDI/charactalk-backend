@@ -1,0 +1,47 @@
+@startuml
+actor User
+participant Client
+participant Live2D
+participant AppServer
+participant AIServer
+participant GoogleSTT as STT
+participant GoogleTTS as TTS
+
+== 1. 통화 시작 ==
+User -> Client : 통화 시작 버튼 클릭
+Client -> Live2D : Live2D 인스턴스 초기화
+Client -> Live2D : 캐릭터 모델 로드
+Client -> AppServer : 채팅방 웹소켓 연결 요청
+Client -> AppServer : 사용자 음성 전송 시작 이벤트 전송
+
+== 2. 사용자 음성 전송 ==
+loop 사용자 음성 청크 전송
+    Client -> AppServer : 사용자 음성 청크 (8KB, 24kHz, LINEAR16)
+end
+
+== 3. 사용자 음성 전송 종료 ==
+Client -> AppServer : 사용자 음성 전송 종료 이벤트 전송
+
+== 4. 캐릭터 음성 생성 ==
+AppServer -> STT : 사용자 음성 → 텍스트 변환 요청
+STT --> AppServer : 텍스트 응답
+
+AppServer -> AIServer : 텍스트에 대한 캐릭터 응답 생성 요청
+loop 캐릭터 응답 청크 단위
+    AIServer -> TTS : 캐릭터 응답 청크 → 캐릭터 음성 변환
+    TTS --> AIServer : 캐릭터 음성 청크
+    AIServer --> AppServer : 캐릭터 음성 청크 전송 (SSE)
+    AppServer -> Client : 캐릭터 음성 청크 발행 (웹소켓)
+end
+
+== 5. 캐릭터 립싱크 처리 ==
+loop 캐릭터 음성 청크 재생
+    Client -> Client : RMS 계산 → easing → 립싱크 파라미터 생성
+    Client -> Live2D : 캐릭터 립싱크 처리 요청
+end
+
+== 6. 통화 종료 ==
+User -> Client : 통화 종료 버튼 클릭
+Client -> AppServer : 채팅방 웹소켓 연결 종료 요청
+
+@enduml

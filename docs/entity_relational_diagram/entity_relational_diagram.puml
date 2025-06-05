@@ -1,0 +1,73 @@
+@startuml
+!define primary_key(x) <b>x</b>
+!define foreign_key(x) <i>x</i>
+
+entity story {
+  primary_key(story_id): bigint
+  --
+  title: varchar
+  description: varchar
+  story_type: varchar
+  image_url: varchar
+}
+
+entity characters {
+  primary_key(character_id): bigint
+  foreign_key(story_id): bigint
+  --
+  name: varchar
+  description: varchar
+  image_url: varchar
+}
+
+entity tag {
+  primary_key(tag_id): bigint
+  --
+  name: varchar
+}
+
+entity story_tag {
+  primary_key(story_tag_id): bigint
+  foreign_key(story_id): bigint
+  foreign_key(tag_id): bigint
+}
+
+entity member {
+  primary_key(member_id): bigint
+  --
+  created_at: datetime
+  email: varchar
+  gender: varchar
+  birth: varchar
+  name: varchar
+  picture: varchar
+  role: varchar
+}
+
+entity chat_room {
+  primary_key(chat_room_id): bigint
+  foreign_key(member_id): bigint
+  foreign_key(character_id): bigint
+  --
+  created_at: datetime
+  char_room_name: varchar
+  char_room_type: varchar
+}
+
+entity chat {
+  primary_key(chat_id): bigint
+  foreign_key(chat_room_id): bigint
+  --
+  created_at: datetime
+  message: varchar
+  sender_id: bigint
+  sender_type: varchar
+}
+
+story ||--o{ characters : contains
+story ||--o{ story_tag : has
+tag ||--o{ story_tag : describes
+chat_room ||--o{ chat : has
+member ||--o{ chat_room : owns
+characters ||--o{ chat_room : participates
+@enduml
